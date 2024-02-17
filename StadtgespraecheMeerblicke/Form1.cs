@@ -24,7 +24,7 @@ namespace StadtgespraecheMeerblicke
 
         int recordTime = 7;
 
-
+        List<Tuple<int, int>> deviceIdentifiers = new List<Tuple<int, int>>();
         public Form1()
         {
 
@@ -32,15 +32,112 @@ namespace StadtgespraecheMeerblicke
 
             InitializeComponent();
             DeviceScan();
-            Rec1 = new RecorderItem(0, 1, recordTime);
-            Rec1.PlayerChanged += Player1_Changed;
-            Rec1.PlayerProgress += Player1_Progress;
-            Rec2 = new RecorderItem(2, 0, recordTime);
-            Rec2.PlayerChanged += Player2_Changed;
-            Rec3 = new RecorderItem(3, 3, recordTime);
-            Rec3.PlayerChanged += Rec3_PlayerChanged;
-            Rec4 = new RecorderItem(3, 3, recordTime);
-            Rec4.PlayerChanged += Rec4_PlayerChanged;
+
+
+
+            if (deviceIdentifiers.Count == 4)
+            {
+                Console.WriteLine("AUTO SETUP SUCCESFUL");
+                Rec1 = new RecorderItem(deviceIdentifiers[0].Item1, deviceIdentifiers[0].Item2, recordTime);
+                Rec1.PlayerChanged += Player1_Changed;
+                Rec1.PlayerProgress += Player1_Progress;
+                Rec2 = new RecorderItem(deviceIdentifiers[1].Item1, deviceIdentifiers[1].Item2, recordTime);
+                Rec2.PlayerChanged += Player2_Changed;
+                Rec2.PlayerProgress += Player2_Progress;
+                Rec3 = new RecorderItem(deviceIdentifiers[2].Item1, deviceIdentifiers[2].Item2, recordTime);
+                Rec3.PlayerChanged += Rec3_PlayerChanged;
+                Rec3.PlayerProgress += Player3_Progress;
+                Rec4 = new RecorderItem(deviceIdentifiers[3].Item1, deviceIdentifiers[3].Item2, recordTime);
+                Rec4.PlayerChanged += Rec4_PlayerChanged;
+                Rec4.PlayerProgress += Player4_Progress;
+                updateComboBoxes();
+            }
+            else
+            {
+
+                Rec1 = new RecorderItem(0, 1, recordTime);
+                Rec1.PlayerChanged += Player1_Changed;
+                Rec1.PlayerProgress += Player1_Progress;
+                Rec2 = new RecorderItem(2, 0, recordTime);
+                Rec2.PlayerChanged += Player2_Changed;
+                Rec3 = new RecorderItem(3, 3, recordTime);
+                Rec3.PlayerChanged += Rec3_PlayerChanged;
+                Rec4 = new RecorderItem(3, 3, recordTime);
+                Rec4.PlayerChanged += Rec4_PlayerChanged;
+
+            }
+
+        }
+
+        private void updateComboBoxes()
+        {
+           
+            InputCombobox1.SelectedIndex = deviceIdentifiers[0].Item1;
+            OutputCombobox1.SelectedIndex = deviceIdentifiers[0].Item2;
+
+            InputCombobox2.SelectedIndex = deviceIdentifiers[1].Item1;
+            OutputCombobox2.SelectedIndex = deviceIdentifiers[1].Item2;
+
+            InputCombobox3.SelectedIndex = deviceIdentifiers[2].Item1;
+            OutputCombobox3.SelectedIndex = deviceIdentifiers[2].Item2;
+
+            InputCombobox4.SelectedIndex = deviceIdentifiers[3].Item1;
+            OutputCombobox4.SelectedIndex = deviceIdentifiers[3].Item2;
+
+
+        }
+
+        private void Player4_Progress(object? sender, AudioProgressEventArgs e)
+        {
+            this.Invoke(new Action(() =>
+            {
+                try
+                {
+                    RecordingProgressBar4.Maximum = e.Total;
+                    RecordingProgressBar4.Value = e.Progress;
+                }
+                catch
+                {
+                    Console.WriteLine("error with progressbar");
+                    RecordingProgressBar4.Value = 0;
+                }
+            }));
+
+        }
+
+        private void Player3_Progress(object? sender, AudioProgressEventArgs e)
+        {
+            this.Invoke(new Action(() =>
+            {
+                try
+                {
+                    RecordingProgressBar3.Maximum = e.Total;
+                    RecordingProgressBar3.Value = e.Progress;
+                }
+                catch
+                {
+                    Console.WriteLine("error with progressbar");
+                    RecordingProgressBar3.Value = 0;
+                }
+            }));
+
+        }
+
+        private void Player2_Progress(object? sender, AudioProgressEventArgs e)
+        {
+            this.Invoke(new Action(() =>
+            {
+                try
+                {
+                    RecordingProgressBar2.Maximum = e.Total;
+                    RecordingProgressBar2.Value = e.Progress;
+                }
+                catch
+                {
+                    Console.WriteLine("error with progressbar");
+                    RecordingProgressBar2.Value = 0;
+                }
+            }));
 
         }
 
@@ -140,8 +237,8 @@ namespace StadtgespraecheMeerblicke
             {
 
                 String info = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active)[i].ToString();
-                Console.Write(i + ":OUT: " + info);
-                Console.WriteLine(info);
+              //  Console.Write(i + ":OUT: " + info);
+             //   Console.WriteLine(info);
                 Tuple<int, String> toAdd = new Tuple<int, String>(i, info);
                 PlayBackDevices.Add(toAdd);
 
@@ -153,8 +250,8 @@ namespace StadtgespraecheMeerblicke
             for (int i = 0; i < WaveIn.DeviceCount; i++)
             {
                 String info = enumerator.EnumerateAudioEndPoints(DataFlow.Capture, DeviceState.Active)[i].ToString();
-                Console.Write(i + ":REC: " + info);
-                Console.WriteLine(info);
+               // Console.Write(i + ":REC: " + info);
+             //   Console.WriteLine(info);
                 Tuple<int, String> toAdd = new Tuple<int, String>(i, info);
                 RecordingDevices.Add(toAdd);
             }
@@ -162,14 +259,14 @@ namespace StadtgespraecheMeerblicke
             enumerator.Dispose();
 
 
-            foreach (var device in PlayBackDevices)
+            foreach (Tuple<int, String> device in PlayBackDevices)
             {
                 OutputCombobox1.Items.Add(device);
                 OutputCombobox2.Items.Add(device);
                 OutputCombobox3.Items.Add(device);
                 OutputCombobox4.Items.Add(device);
             }
-            foreach (var device in RecordingDevices)
+            foreach (Tuple<int, String> device in RecordingDevices)
             {
                 InputCombobox1.Items.Add(device);
                 InputCombobox2.Items.Add(device);
@@ -177,6 +274,28 @@ namespace StadtgespraecheMeerblicke
                 InputCombobox4.Items.Add(device);
             }
 
+            int counter = 0; 
+
+            foreach (Tuple<int, String> a in PlayBackDevices)
+            {
+                foreach (Tuple<int, String> b in RecordingDevices)
+                {
+                    int iA = a.Item2.IndexOf("(");
+                    String strA = a.Item2.Substring(iA);
+                    int iB = b.Item2.IndexOf("(");
+                    String strB = b.Item2.Substring(iB);
+
+                   
+                    if (strA.Equals(strB) && strA.Contains("USB PnP") && strB.Contains("USB PnP")) { 
+                        Console.WriteLine("FOUND MATCH"); 
+                        Console.WriteLine(strA + "-" + strB);
+                        Tuple<int, int> found = new Tuple<int, int>(b.Item1, a.Item1);
+                        deviceIdentifiers.Add(found);
+
+
+                    }
+                }
+            }
         }
 
         private void PreviousButton1_Click(object sender, EventArgs e)
