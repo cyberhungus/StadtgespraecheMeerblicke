@@ -30,6 +30,7 @@
         {
             components = new System.ComponentModel.Container();
             panel1 = new Panel();
+            Station1Status = new Label();
             RecordingProgressBar1 = new ProgressBar();
             PlaybackDeviceLabel1 = new Label();
             RecordLabel1 = new Label();
@@ -42,6 +43,7 @@
             InputCombobox1 = new ComboBox();
             UI_Timer = new System.Windows.Forms.Timer(components);
             panel5 = new Panel();
+            Station2Status = new Label();
             RecordingProgressBar2 = new ProgressBar();
             label1 = new Label();
             label5 = new Label();
@@ -53,6 +55,7 @@
             RecordButton2 = new Button();
             InputCombobox2 = new ComboBox();
             panel6 = new Panel();
+            Station3Status = new Label();
             RecordingProgressBar3 = new ProgressBar();
             label7 = new Label();
             label8 = new Label();
@@ -64,6 +67,7 @@
             RecordButton3 = new Button();
             InputCombobox3 = new ComboBox();
             panel2 = new Panel();
+            Station4Status = new Label();
             RecordingProgressBar4 = new ProgressBar();
             label2 = new Label();
             label3 = new Label();
@@ -83,6 +87,7 @@
             // panel1
             // 
             panel1.BorderStyle = BorderStyle.FixedSingle;
+            panel1.Controls.Add(Station1Status);
             panel1.Controls.Add(RecordingProgressBar1);
             panel1.Controls.Add(PlaybackDeviceLabel1);
             panel1.Controls.Add(RecordLabel1);
@@ -97,6 +102,15 @@
             panel1.Name = "panel1";
             panel1.Size = new Size(200, 426);
             panel1.TabIndex = 0;
+            // 
+            // Station1Status
+            // 
+            Station1Status.AutoSize = true;
+            Station1Status.Location = new Point(3, 113);
+            Station1Status.Name = "Station1Status";
+            Station1Status.Size = new Size(39, 15);
+            Station1Status.TabIndex = 9;
+            Station1Status.Text = "Status";
             // 
             // RecordingProgressBar1
             // 
@@ -177,7 +191,7 @@
             // RecordButton1
             // 
             RecordButton1.ForeColor = SystemColors.ControlText;
-            RecordButton1.Location = new Point(4, 118);
+            RecordButton1.Location = new Point(3, 131);
             RecordButton1.Name = "RecordButton1";
             RecordButton1.Size = new Size(191, 23);
             RecordButton1.TabIndex = 1;
@@ -203,6 +217,7 @@
             // panel5
             // 
             panel5.BorderStyle = BorderStyle.FixedSingle;
+            panel5.Controls.Add(Station2Status);
             panel5.Controls.Add(RecordingProgressBar2);
             panel5.Controls.Add(label1);
             panel5.Controls.Add(label5);
@@ -217,6 +232,15 @@
             panel5.Name = "panel5";
             panel5.Size = new Size(200, 426);
             panel5.TabIndex = 9;
+            // 
+            // Station2Status
+            // 
+            Station2Status.AutoSize = true;
+            Station2Status.Location = new Point(4, 115);
+            Station2Status.Name = "Station2Status";
+            Station2Status.Size = new Size(39, 15);
+            Station2Status.TabIndex = 9;
+            Station2Status.Text = "Status";
             // 
             // RecordingProgressBar2
             // 
@@ -297,7 +321,7 @@
             // RecordButton2
             // 
             RecordButton2.ForeColor = SystemColors.ControlText;
-            RecordButton2.Location = new Point(4, 118);
+            RecordButton2.Location = new Point(3, 131);
             RecordButton2.Name = "RecordButton2";
             RecordButton2.Size = new Size(191, 23);
             RecordButton2.TabIndex = 1;
@@ -318,6 +342,7 @@
             // panel6
             // 
             panel6.BorderStyle = BorderStyle.FixedSingle;
+            panel6.Controls.Add(Station3Status);
             panel6.Controls.Add(RecordingProgressBar3);
             panel6.Controls.Add(label7);
             panel6.Controls.Add(label8);
@@ -332,6 +357,15 @@
             panel6.Name = "panel6";
             panel6.Size = new Size(200, 426);
             panel6.TabIndex = 10;
+            // 
+            // Station3Status
+            // 
+            Station3Status.AutoSize = true;
+            Station3Status.Location = new Point(4, 113);
+            Station3Status.Name = "Station3Status";
+            Station3Status.Size = new Size(39, 15);
+            Station3Status.TabIndex = 9;
+            Station3Status.Text = "Status";
             // 
             // RecordingProgressBar3
             // 
@@ -412,7 +446,7 @@
             // RecordButton3
             // 
             RecordButton3.ForeColor = SystemColors.ControlText;
-            RecordButton3.Location = new Point(4, 118);
+            RecordButton3.Location = new Point(4, 131);
             RecordButton3.Name = "RecordButton3";
             RecordButton3.Size = new Size(191, 23);
             RecordButton3.TabIndex = 1;
@@ -433,6 +467,7 @@
             // panel2
             // 
             panel2.BorderStyle = BorderStyle.FixedSingle;
+            panel2.Controls.Add(Station4Status);
             panel2.Controls.Add(RecordingProgressBar4);
             panel2.Controls.Add(label2);
             panel2.Controls.Add(label3);
@@ -447,6 +482,15 @@
             panel2.Name = "panel2";
             panel2.Size = new Size(200, 426);
             panel2.TabIndex = 11;
+            // 
+            // Station4Status
+            // 
+            Station4Status.AutoSize = true;
+            Station4Status.Location = new Point(4, 112);
+            Station4Status.Name = "Station4Status";
+            Station4Status.Size = new Size(39, 15);
+            Station4Status.TabIndex = 9;
+            Station4Status.Text = "Status";
             // 
             // RecordingProgressBar4
             // 
@@ -527,7 +571,7 @@
             // RecordButton4
             // 
             RecordButton4.ForeColor = SystemColors.ControlText;
-            RecordButton4.Location = new Point(4, 118);
+            RecordButton4.Location = new Point(4, 130);
             RecordButton4.Name = "RecordButton4";
             RecordButton4.Size = new Size(191, 23);
             RecordButton4.TabIndex = 1;
@@ -629,5 +673,9 @@
         private ComboBox OutputCombobox4;
         private ListBox OutputList4;
         private ComboBox InputCombobox4;
+        private Label Station1Status;
+        private Label Station2Status;
+        private Label Station3Status;
+        private Label Station4Status;
     }
 }

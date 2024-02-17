@@ -10,7 +10,8 @@ namespace StadtgespraecheMeerblicke
     {
         WaveIn waveSource = null;
         WaveFileWriter waveFile = null;
-        Timer timer = null;
+        Timer RecordingTimer = null;
+        Timer AudioProgressTimer = null;
         WaveOut waveOut = null;
         WaveFileReader waveReader;
 
@@ -25,6 +26,13 @@ namespace StadtgespraecheMeerblicke
         bool isPlaying = false; 
 
         public event EventHandler<RecorderPlayerEventArgs> PlayerChanged;
+        public event EventHandler<AudioProgressEventArgs> PlayerProgress;
+
+        int currentAudioTimeTotal = 0; 
+        int bitrate = 44100;
+
+        int audioProgressInterval = 20;
+        int audioTimeElapsed = 0; 
 
 
         public RecorderItem(int deviceInNumber, int deviceOutNumber, int recordSeconds)
@@ -33,13 +41,33 @@ namespace StadtgespraecheMeerblicke
             this.deviceOutput = deviceOutNumber;
             this.recordSeconds = recordSeconds;
 
+            AudioProgressTimer = new Timer();
+            AudioProgressTimer.Enabled = true;
+            
+            AudioProgressTimer.Interval = audioProgressInterval;
+            AudioProgressTimer.AutoReset = true;
+            AudioProgressTimer.Elapsed += InvokeAudioProgressEvent;
+            AudioProgressTimer.Start();
 
+
+        }
+
+        private void InvokeAudioProgressEvent(object? sender, ElapsedEventArgs e)
+        {
+            if (isPlaying || isRecording)
+            {
+                audioTimeElapsed += audioProgressInterval;
+                AudioProgressEventArgs apea = new AudioProgressEventArgs();
+                apea.Progress = audioTimeElapsed;
+                apea.Total = currentAudioTimeTotal;
+                PlayerProgress.Invoke(this, apea);
+            }
         }
 
         public void setInputNumber(int number)
         {
             this.deviceInput = number;
-            InvokeEventWithMessage("Changed Input to " +  number);
+            InvokeEventWithMessage("Changed Input to " +  number, "Idle");
             
             
         }
@@ -47,7 +75,7 @@ namespace StadtgespraecheMeerblicke
         public void setOutputNumber(int number)
         {
             this.deviceOutput = number;
-           InvokeEventWithMessage("Changed Output to " + number);
+           InvokeEventWithMessage("Changed Output to " + number, "Idle");
         }
 
         public void record()
@@ -60,7 +88,7 @@ namespace StadtgespraecheMeerblicke
                     
 
                     waveSource = new WaveIn();
-                    waveSource.WaveFormat = new WaveFormat(44100, 1);
+                    waveSource.WaveFormat = new WaveFormat(bitrate, 1);
                     waveSource.DeviceNumber = deviceInput;
 
                     waveSource.DataAvailable += new EventHandler<WaveInEventArgs>(waveSource_DataAvailable);
@@ -69,36 +97,39 @@ namespace StadtgespraecheMeerblicke
                     lastFileName = toWrite;
                     waveFile = new WaveFileWriter(toWrite, waveSource.WaveFormat);
 
-                    timer = new Timer(recordSeconds * 1000);
+                    RecordingTimer = new Timer(recordSeconds * 1000);
 
 
-                    timer.AutoReset = false;
+                    RecordingTimer.AutoReset = false;
 
 
-                    timer.Elapsed += StopRecording;
+                    RecordingTimer.Elapsed += StopRecording;
 
+                    currentAudioTimeTotal = recordSeconds * 1000;
+                    Console.WriteLine("Recording, " + currentAudioTimeTotal);
 
                     waveSource.StartRecording();
                     isRecording = true;
 
-                    timer.Start();
-                 
-                    InvokeEventWithMessage("Started Recording " + lastFileName);
+                    RecordingTimer.Start();
+                    AudioProgressTimer.Enabled = true;
+
+                    InvokeEventWithMessage("Started Recording " + lastFileName, "Recording");
                 }
                 else if (isRecording == true)
                 {
                   
-                    InvokeEventWithMessage("Duplicate Recording Stopped");
+                    InvokeEventWithMessage("Duplicate Recording Stopped", "Recording");
                 }
                 else if (isPlaying == true)
                 {
                     
-                    InvokeEventWithMessage("Recording while Playing Stopped");
+                    InvokeEventWithMessage("Recording while Playing Stopped", "Playing");
                 }
             }
             catch (Exception ex)
             {
-                InvokeEventWithMessage("Record Error" + ex.Message);
+                InvokeEventWithMessage("Record Error" + ex.Message, "Error");
             }
 
         }
@@ -106,12 +137,15 @@ namespace StadtgespraecheMeerblicke
         private void StopRecording(object sender, ElapsedEventArgs e)
         {
            
-            timer.Stop();
-            timer.Dispose();
+            RecordingTimer.Stop();
+            RecordingTimer.Dispose();
             waveSource.StopRecording();
             Console.WriteLine("Recording stopped on device " + deviceInput);
-            InvokeEventWithMessage("Stopped Recording " +lastFileName);
+            InvokeEventWithMessage("Stopped Recording " +lastFileName, "Idle");
+            //AudioProgressTimer.Enabled = false;
             isRecording = false;
+            currentAudioTimeTotal = 0;
+            audioTimeElapsed = 0;
         }
 
 
@@ -122,29 +156,30 @@ namespace StadtgespraecheMeerblicke
                 if (isPlaying == false && isRecording == false && lastFileName != "")
                 {
                     
-                    InvokeEventWithMessage("Started Playback " + lastFileName);
+                    InvokeEventWithMessage("Started Playback " + lastFileName, "Playing");
                   
                     waveReader = new NAudio.Wave.WaveFileReader(lastFileName);
                     waveOut = new NAudio.Wave.WaveOut();
                     waveOut.DeviceNumber = this.deviceOutput;
                     waveOut.Init(waveReader);
-
+                    currentAudioTimeTotal = recordSeconds * 1000;
+                    Console.WriteLine("Playing, " + currentAudioTimeTotal);
                     waveOut.Play();
                     isPlaying = true;
                     waveOut.PlaybackStopped += waveOut_PlaybackStopped;
                 }
                 else if (isRecording == true)
                 {
-                   InvokeEventWithMessage("Duplicate Playback Stopped");
+                   InvokeEventWithMessage("Playing while Recording Stopped", "Recording");
                 }
                 else if (isPlaying == true)
                 {
-                    InvokeEventWithMessage("Playing while Recording Stopped");
+                    InvokeEventWithMessage("Already Playing", "Playing");
                 }
             }
             catch (Exception ex)
             {
-                InvokeEventWithMessage("Error Playing " + ex.Message);
+                InvokeEventWithMessage("Error Playing " + ex.Message, "Error");
             }
 
         }
@@ -152,10 +187,12 @@ namespace StadtgespraecheMeerblicke
         private void waveOut_PlaybackStopped(object? sender, StoppedEventArgs e)
         {
           
-            InvokeEventWithMessage("Stopped playing");
+            InvokeEventWithMessage("Stopped playing", "Idle");
             waveOut.Dispose();
             waveReader.Dispose();
             isPlaying = false;
+            currentAudioTimeTotal = 0;
+            audioTimeElapsed = 0;
         }
 
         public void playRandom()
@@ -167,29 +204,32 @@ namespace StadtgespraecheMeerblicke
                 if (isPlaying == false && isRecording == false && fileName != "" )
                 {
 
-                    InvokeEventWithMessage("Started Random Playback " + fileName);
+                    InvokeEventWithMessage("Started Random Playback " + fileName, "Playing");
 
                     waveReader = new NAudio.Wave.WaveFileReader(fileName);
                     waveOut = new NAudio.Wave.WaveOut();
                     waveOut.DeviceNumber = this.deviceOutput;
                     waveOut.Init(waveReader);
-
+                    currentAudioTimeTotal = recordSeconds * 1000;
+                    // currentAudioTimeTotal = (int)(currentAudioTimeTotal * 0.8);
+                    Console.WriteLine("Playing, " + currentAudioTimeTotal);
                     waveOut.Play();
                     isPlaying = true;
                     waveOut.PlaybackStopped += waveOut_PlaybackStopped;
                 }
                 else if (isRecording == true)
                 {
-                    InvokeEventWithMessage("Duplicate Playback Stopped");
+                    InvokeEventWithMessage("Duplicate Playback Stopped", "Idle");
                 }
                 else if (isPlaying == true)
                 {
-                    InvokeEventWithMessage("Playing while Recording Stopped");
+                    InvokeEventWithMessage("Playing while Recording Stopped", "Idle");
                 }
             }
             catch (Exception ex)
             {
-                InvokeEventWithMessage("Error Random Playing " + ex.Message);
+                InvokeEventWithMessage("Error Random Playing " + ex.Message, "Error");
+                playRandom();
             }
         }
 
@@ -229,7 +269,7 @@ namespace StadtgespraecheMeerblicke
             }
             catch (Exception ex)
             {
-                InvokeEventWithMessage(ex.Message);
+                InvokeEventWithMessage(ex.Message, "Error");
                 return "";
             }
 
@@ -263,12 +303,13 @@ namespace StadtgespraecheMeerblicke
           
         }
 
-        public void InvokeEventWithMessage(String message)
+        public void InvokeEventWithMessage(String message, String state)
         {
             RecorderPlayerEventArgs toPass = new RecorderPlayerEventArgs();
             toPass.Message = message;
             toPass.isPlaying = isPlaying;
             toPass.isRecording = isRecording;
+            toPass.state = state;
 
             PlayerChanged.Invoke(this, toPass);
 
@@ -286,10 +327,13 @@ namespace StadtgespraecheMeerblicke
     class RecorderPlayerEventArgs : EventArgs
     {
         public string Message { get; set; }
+        public string state { get; set; }
         public bool isPlaying { get; set; }
-        public bool isRecording { get; set; }
-
-
-       
+        public bool isRecording { get; set; }  
+    }
+    class AudioProgressEventArgs : EventArgs
+    {
+        public int Progress { get; set; }
+        public int Total { get; set; }
     }
 }

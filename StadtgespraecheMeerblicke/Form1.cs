@@ -20,7 +20,9 @@ namespace StadtgespraecheMeerblicke
         List<String> Player3_Messages = new List<String>();
         List<String> Player4_Messages = new List<String>();
 
-        int playbackTime = 7;
+        String[] states = new String[4];
+
+        int recordTime = 7;
 
 
         public Form1()
@@ -30,14 +32,32 @@ namespace StadtgespraecheMeerblicke
 
             InitializeComponent();
             DeviceScan();
-            Rec1 = new RecorderItem(0, 1, playbackTime);
+            Rec1 = new RecorderItem(0, 1, recordTime);
             Rec1.PlayerChanged += Player1_Changed;
-            Rec2 = new RecorderItem(2, 0, playbackTime);
+            Rec1.PlayerProgress += Player1_Progress;
+            Rec2 = new RecorderItem(2, 0, recordTime);
             Rec2.PlayerChanged += Player2_Changed;
-            Rec3 = new RecorderItem(3, 3, playbackTime);
+            Rec3 = new RecorderItem(3, 3, recordTime);
             Rec3.PlayerChanged += Rec3_PlayerChanged;
-            Rec4 = new RecorderItem(3, 3, playbackTime);
+            Rec4 = new RecorderItem(3, 3, recordTime);
             Rec4.PlayerChanged += Rec4_PlayerChanged;
+
+        }
+
+        private void Player1_Progress(object? sender, AudioProgressEventArgs e)
+        {
+            this.Invoke(new Action(() =>
+            {
+                try
+                {
+                    RecordingProgressBar1.Maximum = e.Total;
+                    RecordingProgressBar1.Value = e.Progress;
+                }
+                catch { Console.WriteLine("error with progressbar");
+                    RecordingProgressBar1.Value =0;
+                }
+            }));
+        
         }
 
         private void Rec4_PlayerChanged(object? sender, RecorderPlayerEventArgs e)
@@ -47,7 +67,7 @@ namespace StadtgespraecheMeerblicke
             {
                 Player4_Messages.RemoveAt(0);
             }
-            Console.WriteLine("4 RECEIVED: " + Player4_Messages.Count);
+            states[3] = e.state;
         }
 
         private void Rec3_PlayerChanged(object? sender, RecorderPlayerEventArgs e)
@@ -57,8 +77,7 @@ namespace StadtgespraecheMeerblicke
             {
                 Player3_Messages.RemoveAt(0);
             }
-            Console.WriteLine("3 RECEIVED: " + Player3_Messages.Count);
-
+            states[2] = e.state;
         }
 
         private void Player2_Changed(object? sender, RecorderPlayerEventArgs e)
@@ -68,7 +87,8 @@ namespace StadtgespraecheMeerblicke
             {
                 Player2_Messages.RemoveAt(0);
             }
-            Console.WriteLine("2 RECEIVED: " + Player2_Messages.Count);
+
+            states[1] = e.state;
 
         }
 
@@ -79,7 +99,7 @@ namespace StadtgespraecheMeerblicke
             {
                 Player1_Messages.RemoveAt(0);
             }
-            Console.WriteLine("1 RECEIVED: " + Player1_Messages.Count);
+            states[0] = e.state;
 
         }
 
@@ -105,6 +125,11 @@ namespace StadtgespraecheMeerblicke
             {
                 OutputList4.Items.Add(item);
             }
+            Station4Status.Text = states[3];
+            Station3Status.Text = states[2];
+            Station2Status.Text = states[1];
+            Station1Status.Text = states[0];
+
         }
 
         private void DeviceScan()
